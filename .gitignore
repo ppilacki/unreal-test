@@ -1,0 +1,25 @@
+# Unreal Engine
+Survive_together/Binaries/
+Survive_together/Build/
+Survive_together/DerivedDataCache/
+Survive_together/Intermediate/
+Survive_together/Saved/
+Survive_together/*.VC.db
+Survive_together/*.opensdf
+Survive_together/*.opendb
+Survive_together/*.sdf
+Survive_together/*.suo
+Survive_together/*.xcworkspacedata
+Survive_together/*.xcuserstate
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
+# OS
+Thumbs.db
+.DS_Store
+Desktop.ini
