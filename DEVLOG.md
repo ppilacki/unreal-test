@@ -34,7 +34,19 @@
 - Removed CameraBoom + FollowCamera + Aim nodes from BP_ThirdPersonCharacter (character no longer has its own camera)
 - Camera component on BP_CoopCamera needs Set Active (New Active = true) on BeginPlay
 
+### 2026-03-24 — Leash System (Phase 1)
+- Created BP_Leash actor with a Cable Component connecting both players visually
+  - Cable Component settings: Cable Length 500, Num Sides 8, Cable Width 10, Solve Iterations 8, Enable Stiffness off
+  - Actor positions itself at Player 1's location every tick; cable end stretches to Player 2's location
+  - End Location is calculated in local space using Inverse Transform Location (world → local conversion)
+- BeginPlay: gets Player 1 and Player 2 references via Get Player Character (index 0 and 1) with a 0.5s Delay before the calls, because Player 2 is spawned by Create Local Player in the Level Blueprint slightly after BP_Leash's BeginPlay fires
+- Event Tick: guarded with Is Valid check on Player 2 — skips the frame silently if Player 2 isn't ready yet, preventing "Accessed None" crashes
+- BP_Leash placed in level — no manual positioning needed as it overrides its own location on tick
+
 ### Next Steps
 - [ ] Finish zoom logic in BP_CoopCamera (dynamic Spring Arm length based on player distance)
 - [ ] Add IsValid check for Player 2 in BP_CoopCamera tick to prevent errors
 - [ ] Set up arrow keys input for Player 2
+- [ ] Add leash constraint — push players back or resist movement when distance exceeds max length
+- [ ] Attach VFX and 3D models along the cable
+- [ ] Add damage to enemies that intersect the leash
