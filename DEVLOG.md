@@ -43,10 +43,28 @@
 - Event Tick: guarded with Is Valid check on Player 2 — skips the frame silently if Player 2 isn't ready yet, preventing "Accessed None" crashes
 - BP_Leash placed in level — no manual positioning needed as it overrides its own location on tick
 
+### 2026-03-25 — Leash System (Phase 2) — Dynamic Length + Constraint
+- Cable length now adjusts dynamically each tick: Cable Length = distance between players + CableSlack variable (default 50)
+  - Gives the rope a natural sag when players are close, goes taut as they approach max distance
+- Added MaxLeashLength variable (float) — configurable in editor per instance
+- Added leash constraint in Event Tick exec chain: SET End Location → SET Cable Length → Branch
+  - Branch condition: raw Vector Length (player distance) > MaxLeashLength
+  - True branch: symmetric pull — both players are repositioned toward the midpoint
+  - Midpoint = (P1 + P2) / 2; HalfStep = Normalize(P2 - P1) × (MaxLeashLength / 2)
+  - P1 new position = Midpoint - HalfStep; P2 new position = Midpoint + HalfStep
+  - False branch: unconnected — players are within range, nothing happens
+
+### Current Known Issue — Asymmetric Constraint
+The symmetric pull logic is correctly wired in BP_Leash, but in practice only Player 2 gets constrained. Player 1 moves freely past the limit because **SetActorLocation is overridden by the CharacterMovementComponent** — the movement component recalculates and reasserts the character's position every frame, overwriting the teleport on Player 1 while Player 2's teleport happens to stick.
+
+The result: Player 1 drags Player 2 when the leash is taut. Functional but not symmetric.
+
+**To fix this properly (when ready):**
+Replace SetActorLocation with **Launch Character** on both players. When distance > MaxLeashLength, calculate a velocity vector pointing from each player toward the midpoint and call Launch Character with that velocity (with bXYOverride and bZOverride set appropriately). This works with the movement component rather than against it and produces smooth, physically believable resistance instead of a hard teleport. The magnitude of the launch velocity can be tuned to feel like elastic resistance or a hard stop.
+
 ### Next Steps
+- [ ] Fix symmetric leash constraint using Launch Character (see known issue above)
 - [ ] Finish zoom logic in BP_CoopCamera (dynamic Spring Arm length based on player distance)
 - [ ] Add IsValid check for Player 2 in BP_CoopCamera tick to prevent errors
-- [ ] Set up arrow keys input for Player 2
-- [ ] Add leash constraint — push players back or resist movement when distance exceeds max length
 - [ ] Attach VFX and 3D models along the cable
 - [ ] Add damage to enemies that intersect the leash
